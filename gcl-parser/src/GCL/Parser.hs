@@ -1,40 +1,31 @@
 module GCL.Parser(parse) where
 
-import Control.Applicative((<**>))
+import Control.Applicative((<**>), (<|>), many, optional)
+import Control.Applicative.Combinators(skipManyTill)
 import Control.Monad.Combinators.Expr(Operator(..), makeExprParser)
-import Data.Bifunctor(first)
+import Data.Attoparsec.Text hiding (parse)
 import Data.Function(on)
 import Data.Functor(($>))
 import Data.List(groupBy, sortOn)
 import Data.Ord(Down(..))
 import Data.Text(Text)
 import Data.Text qualified as T
-import Data.Void(Void)
-import Text.Megaparsec hiding (parse)
-import Text.Megaparsec.Char
-import Text.Megaparsec.Char.Lexer qualified as L
 
 import GCL.Syntax
 
-type Parser = Parsec Void Text
-
-lineComm :: Parser ()
-lineComm = L.skipLineComment "--"
-
-blockComm :: Parser ()
-blockComm = L.skipBlockCommentNested "{-" "-}"
-
-sc :: Parser ()
-sc = L.space space1 lineComm blockComm
+ws :: Parser ()
+ws = skipSpace *> skipMany (comment *> skipSpace)
+  where
+    comment = string "--" *> skipManyTill anyChar endOfLine
 
 lexeme :: Parser a -> Parser a
-lexeme = L.lexeme sc
+lexeme p = p <* ws
 
 symbol :: Text -> Parser Text
-symbol = L.symbol sc
+symbol s = string s <* ws
 
 btwn :: Text -> Text -> Parser a -> Parser a
-btwn = between `on` symbol
+btwn before after p = symbol before *> p <* symbol after
 
 reserved :: [Text]
 reserved =
@@ -50,8 +41,8 @@ ident :: Parser Text
 ident =
   try (notReserved . T.pack =<< lexeme ((:) <$> fstChar <*> many sndChar) <?> "Identifier")
   where
-    fstChar = letterChar <|> char '_'
-    sndChar = alphaNumChar <|> char '_' <|> char '\''
+    fstChar = letter <|> char '_'
+    sndChar = fstChar <|> digit <|> char '\''
 
     notReserved i
       | i `elem` reserved = fail $ "Reserved identifier " <> show i
@@ -69,7 +60,7 @@ type' = primType <|> Array <$> btwn "[" "]" primType
 exprAtom :: Parser Expr
 exprAtom =
   choice
-  [ IntLit <$> lexeme L.decimal
+  [ IntLit <$> lexeme (signed decimal)
   , BoolLit True <$ symbol "True"
   , BoolLit False <$ symbol "False"
   , Null <$ symbol "null"
@@ -133,7 +124,7 @@ decl :: Parser Decl
 decl = Decl <$> (ident <* symbol ":") <*> type'
 
 decls :: Parser [Decl]
-decls = decl `sepEndBy` symbol ","
+decls = decl `sepBy` symbol ","
 
 program :: Parser Program
 program =
@@ -142,9 +133,6 @@ program =
   <*> btwn "(" ")" decls
   <*> (symbol "->" *> decl)
   <*> block
-  <*> pure 0
 
-parse :: FilePath -> Text -> Either Text Program
-parse path code =
-  first (("Parser error:\n" <>) . T.pack . errorBundlePretty)
-  $ runParser (optional sc *> program <* eof) path code
+parse :: Text -> Either String Program
+parse = parseOnly $ ws *> program <* endOfInput

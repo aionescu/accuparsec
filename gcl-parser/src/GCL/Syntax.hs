@@ -123,6 +123,5 @@ data Program =
   , programInputs :: [Decl]
   , programOutput :: Decl
   , programBody :: Stmt
-  , programFirstPtr :: Int
   }
   deriving stock Show
