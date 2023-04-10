@@ -1,8 +1,0 @@
-shadowEscape() -> x: Int {
-  let k: Int {
-    assume k == 3;
-    x = k;
-  }
-
-  assert x == 3;
-}

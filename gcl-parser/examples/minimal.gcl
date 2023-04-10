@@ -1,8 +1,0 @@
-test(x: Int) -> z: Int {
-  let y: Int {
-    assume y > 0;
-    x = y;
-  }
-
-  assert x > 0;
-}

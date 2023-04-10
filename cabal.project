@@ -1,0 +1,4 @@
+packages: **/*.cabal
+optimization: 2
+benchmarks: True
+tests: True

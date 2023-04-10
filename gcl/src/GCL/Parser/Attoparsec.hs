@@ -1,9 +1,9 @@
-module GCL.Parser(parse) where
+module GCL.Parser.Attoparsec(parse) where
 
 import Control.Applicative((<**>), (<|>), many, optional)
-import Control.Applicative.Combinators(skipManyTill)
+import Control.Applicative.Combinators(skipMany, choice, sepBy, option, skipManyTill)
 import Control.Monad.Combinators.Expr(Operator(..), makeExprParser)
-import Data.Attoparsec.Text hiding (parse)
+import Data.Attoparsec.Text(Parser, (<?>), endOfInput, decimal, digit, letter, signed, skipSpace, anyChar, char, endOfLine, parseOnly, string)
 import Data.Function(on)
 import Data.Functor(($>))
 import Data.List(groupBy, sortOn)
@@ -39,7 +39,7 @@ reserved =
 
 ident :: Parser Text
 ident =
-  try (notReserved . T.pack =<< lexeme ((:) <$> fstChar <*> many sndChar) <?> "Identifier")
+  notReserved . T.pack =<< lexeme ((:) <$> fstChar <*> many sndChar) <?> "Identifier"
   where
     fstChar = letter <|> char '_'
     sndChar = fstChar <|> digit <|> char '\''
@@ -64,8 +64,8 @@ exprAtom =
   , BoolLit True <$ symbol "True"
   , BoolLit False <$ symbol "False"
   , Null <$ symbol "null"
-  , try $ Subscript <$> (Var <$> ident) <*> btwn "[" "]" expr
-  , ident <**> option Var (try $ symbol "." *> symbol "val" $> GetVal)
+  , Subscript <$> (Var <$> ident) <*> btwn "[" "]" expr
+  , ident <**> option Var (symbol "." *> symbol "val" $> GetVal)
   , Length <$> (symbol "#" *> ident)
   , Forall <$> (symbol "forall" *> ident <* symbol ".") <*> expr
   , Exists <$> (symbol "exists" *> ident <* symbol ".") <*> expr
@@ -99,9 +99,9 @@ stmtSimple =
   [ Skip <$ symbol "skip"
   , Assume <$> (symbol "assume" *> expr)
   , Assert <$> (symbol "assert" *> expr)
-  , try $ AssignIndex <$> ident <*> (btwn "[" "]" expr <* symbol "=") <*> expr
-  , try $ AssignVal <$> ident <* symbol "." <* symbol "val" <* symbol "=" <*> expr
-  , try $ AssignNew <$> ident <* symbol "=" <* symbol "new" <*> expr
+  , AssignIndex <$> ident <*> (btwn "[" "]" expr <* symbol "=") <*> expr
+  , AssignVal <$> ident <* symbol "." <* symbol "val" <* symbol "=" <*> expr
+  , AssignNew <$> ident <* symbol "=" <* symbol "new" <*> expr
   , Assign <$> (ident <* symbol "=") <*> expr
   ] <* symbol ";"
 

@@ -1,6 +1,8 @@
 module GCL.Syntax where
 
+import Control.DeepSeq(NFData)
 import Data.Text(Text)
+import GHC.Generics(Generic)
 
 type Id = Text
 
@@ -9,7 +11,8 @@ data Type
   | Bool
   | Ref
   | Array Type
-  deriving stock Show
+  deriving stock (Eq, Show, Generic)
+  deriving anyclass NFData
 
 data Op
   = Add
@@ -25,10 +28,10 @@ data Op
   | Lte
   | Gt
   | Gte
-  deriving stock (Enum, Bounded, Show)
+  deriving stock (Eq, Enum, Bounded, Show, Generic)
+  deriving anyclass NFData
 
 data Assoc = L | R | N
-  deriving stock Show
 
 associativity :: Op -> Assoc
 associativity = \case
@@ -92,7 +95,8 @@ data Expr
   | Forall Id Expr
   | Exists Id Expr
   | RepBy Expr Expr Expr
-  deriving stock Show
+  deriving stock (Eq, Show, Generic)
+  deriving anyclass NFData
 
 type Pred = Expr
 
@@ -101,7 +105,8 @@ data Decl =
   { declName :: Id
   , declType :: Type
   }
-  deriving stock Show
+  deriving stock (Eq, Show, Generic)
+  deriving anyclass NFData
 
 data Stmt
   = Skip
@@ -115,7 +120,8 @@ data Stmt
   | While Expr Stmt
   | Seq Stmt Stmt
   | Let [Decl] Stmt
-  deriving stock Show
+  deriving stock (Eq, Show, Generic)
+  deriving anyclass NFData
 
 data Program =
   Program
@@ -124,4 +130,5 @@ data Program =
   , programOutput :: Decl
   , programBody :: Stmt
   }
-  deriving stock Show
+  deriving stock (Eq, Show, Generic)
+  deriving anyclass NFData
