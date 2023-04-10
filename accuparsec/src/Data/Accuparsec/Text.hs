@@ -9,7 +9,6 @@ import Control.Monad.Trans.State.Strict(StateT(..))
 import Control.Monad.Trans.Writer.Strict(WriterT(..))
 import Control.Monad.Writer.Class(MonadWriter(..))
 import Data.Char(isDigit, isLetter, ord, isSpace)
-import Data.Functor(void)
 import Data.Functor.Identity(Identity(..))
 import Data.Text(Text)
 import Data.Text qualified as T
@@ -128,5 +127,12 @@ skipSpace = Parser \input -> (Just ((), T.dropWhile isSpace input), mempty)
 {-# INLINE skipSpace #-}
 
 endOfLine :: Parser ()
-endOfLine = void (string "\r\n" <|> string "\r" <|> string "\n") <?> "end of line"
+endOfLine = Parser \input ->
+  case T.uncons input of
+    Just ('\n', rest) -> (Just ((), rest), mempty)
+    Just ('\r', rest) ->
+      case T.uncons rest of
+        Just ('\n', rest') -> (Just ((), rest'), mempty)
+        _ -> (Just ((), rest), mempty)
+    _ -> (Nothing, singleton $ Error "end of line" input)
 {-# INLINE endOfLine #-}
