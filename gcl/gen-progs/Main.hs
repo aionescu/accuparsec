@@ -32,7 +32,8 @@ genAssert n = "  assert y == " <> T.intercalate " + " (genExpr <$> [1..n]) <> ";
 
 genProgram :: Int -> Text
 genProgram n =
-  "prog" <> showT n <> "(" <> genInputs n <> ") -> y: Int {\n"
+  "-- Program intended for parser benchmarks, with n = " <> showT n <> "\n"
+  <> "prog" <> showT n <> "(" <> genInputs n <> ") -> y: Int {\n"
   <> genAssume n
   <> "  y = 0;\n"
   <> "  let b: Bool {\n"
