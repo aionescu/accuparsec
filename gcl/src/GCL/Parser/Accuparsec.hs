@@ -3,7 +3,7 @@ module GCL.Parser.Accuparsec(parse) where
 import Control.Applicative((<**>), (<|>), many, optional)
 import Control.Applicative.Combinators(skipMany, choice, sepBy, option, skipManyTill)
 import Control.Monad.Combinators.Expr(Operator(..), makeExprParser)
-import Data.Accuparsec.Text(Parser, ParseError, (<?>), endOfInput, decimal, digit, letter, signed, skipSpace, anyChar, char, endOfLine, runParser, string)
+import Data.Accuparsec.Text(Parser, ErrorList, (<?>), endOfInput, decimal, digit, letter, signed, skipSpace, anyChar, char, endOfLine, runParser, string)
 import Data.Function(on)
 import Data.Functor(($>))
 import Data.List(groupBy, sortOn)
@@ -134,5 +134,5 @@ program =
   <*> (symbol "->" *> decl)
   <*> block
 
-parse :: Text -> Either [ParseError] Program
+parse :: Text -> Either ErrorList Program
 parse = runParser $ ws *> program <* endOfInput

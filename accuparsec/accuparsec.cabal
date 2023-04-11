@@ -55,9 +55,8 @@ library
   hs-source-dirs: src
   exposed-modules:
     Data.Accuparsec.Text
-    Data.DList
+    Data.SList
 
   build-depends:
     base >=4.15 && <5
-    , deepseq ^>= 1.4.8
     , text ^>= 2
