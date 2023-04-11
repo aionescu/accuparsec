@@ -1,7 +1,6 @@
 module Data.DList where
 
-newtype DList a =
-  DList { ($:) :: [a] -> [a] }
+newtype DList a = DList { ($:) :: [a] -> [a] }
 infixr 4 $:
 
 instance Semigroup (DList a) where
@@ -25,3 +24,7 @@ fromList xs = DList (xs <>)
 toList :: DList a -> [a]
 toList d = d $: []
 {-# INLINE toList #-}
+
+snoc' :: DList a -> a -> DList a
+snoc' (DList f) !x = DList (f . (x :))
+{-# INLINE snoc' #-}
