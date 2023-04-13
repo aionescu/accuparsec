@@ -5,20 +5,22 @@ import Criterion.Main
 import Data.Text(Text)
 import Data.Text.IO qualified as T
 
-import Language.GCL.Parser.Accuparsec qualified as Accu
-import Language.GCL.Parser.Attoparsec qualified as Atto
+import GCL.Parser.Accuparsec qualified as GCL.Accu
+import GCL.Parser.Attoparsec qualified as GCL.Atto
+import JSON.Parser.Accuparsec qualified as JSON.Accu
+import JSON.Parser.Attoparsec qualified as JSON.Atto
 
-benchParser :: (Text -> a) -> String -> Benchmark
-benchParser f name =
-  env (T.readFile $ "progs/" <> name <> ".gcl")
-  $ bench name . whnf f
-
-progs :: [String]
-progs = ("prog" <>) . show <$> [10 :: Int, 20 .. 100]
+benchProg :: (Text -> a) -> FilePath -> Int -> Benchmark
+benchProg parser lang (show -> n) =
+  env (T.readFile path) $ bench n . whnf parser
+  where
+    path = "progs/" <> lang <> "/" <> n <> "." <> lang
 
 main :: IO ()
 main =
   defaultMain
-  [ bgroup "accu" $ benchParser Accu.parse <$> progs
-  , bgroup "atto" $ benchParser Atto.parse <$> progs
+  [ bgroup "gcl/accu" $ benchProg GCL.Accu.parse "gcl" <$> [10, 20 .. 100]
+  , bgroup "gcl/atto" $ benchProg GCL.Atto.parse "gcl" <$> [10, 20 .. 100]
+  , bgroup "json/accu" $ benchProg JSON.Accu.parse "json" <$> [10, 20 .. 100]
+  , bgroup "json/atto" $ benchProg JSON.Atto.parse "json" <$> [10, 20 .. 100]
   ]

@@ -1,9 +1,9 @@
-module Language.GCL.Parser.Attoparsec(parse) where
+module GCL.Parser.Accuparsec(parse) where
 
 import Control.Applicative((<**>), (<|>), many, optional)
-import Control.Applicative.Combinators(skipMany, choice, sepBy, option, skipManyTill)
+import Control.Applicative.Combinators(between, skipMany, choice, sepBy, option, skipManyTill)
 import Control.Monad.Combinators.Expr(Operator(..), makeExprParser)
-import Data.Attoparsec.Text(Parser, (<?>), endOfInput, decimal, digit, letter, signed, skipSpace, anyChar, char, endOfLine, parseOnly, string)
+import Data.Accuparsec.Text(Parser, ErrorList, (<?>), endOfInput, decimal, digit, letter, signed, skipSpace, anyChar, char, endOfLine, runParser, string)
 import Data.Function(on)
 import Data.Functor(($>))
 import Data.List(groupBy, sortOn)
@@ -11,7 +11,7 @@ import Data.Ord(Down(..))
 import Data.Text(Text)
 import Data.Text qualified as T
 
-import Language.GCL.Syntax
+import GCL.Syntax
 
 ws :: Parser ()
 ws = skipSpace *> skipMany (comment *> skipSpace)
@@ -25,7 +25,7 @@ symbol :: Text -> Parser Text
 symbol s = string s <* ws
 
 btwn :: Text -> Text -> Parser a -> Parser a
-btwn before after p = symbol before *> p <* symbol after
+btwn = between `on` symbol
 
 reserved :: [Text]
 reserved =
@@ -134,5 +134,5 @@ program =
   <*> (symbol "->" *> decl)
   <*> block
 
-parse :: Text -> Either String Program
-parse = parseOnly $ ws *> program <* endOfInput
+parse :: Text -> Either ErrorList Program
+parse = runParser $ ws *> program <* endOfInput

@@ -1,19 +1,25 @@
 module Main(main) where
 
-import Data.Foldable(traverse_)
+import Data.Foldable(for_)
+import Data.Text(Text)
 import Data.Text.IO qualified as T
 import System.Exit(exitFailure)
 
-import Language.GCL.Parser.Accuparsec qualified as Accu
-import Language.GCL.Parser.Attoparsec qualified as Atto
+import GCL.Parser.Accuparsec qualified as GCL.Accu
+import GCL.Parser.Attoparsec qualified as GCL.Atto
+import JSON.Parser.Accuparsec qualified as JSON.Accu
+import JSON.Parser.Attoparsec qualified as JSON.Atto
 
-test :: FilePath -> IO ()
-test path = do
-  code <- T.readFile $ "progs/" <> path <> ".gcl"
-  case (Accu.parse code, Atto.parse code) of
+test :: Eq a => (Text -> Either e a) -> (Text -> Either String a) -> FilePath -> Int -> IO ()
+test accu atto lang n = do
+  let path = "progs/" <> lang <> "/" <> show n <> "." <> lang
+  code <- T.readFile path
+  case (accu code, atto code) of
     (Left _, Left _) -> pure ()
     (Right a, Right b) | a == b -> pure ()
     _ -> putStrLn ("Mismatch on " <> path) *> exitFailure
 
 main :: IO ()
-main = traverse_ test $ ("prog" <>) . show <$> [10 :: Int, 20 .. 100]
+main = do
+  for_ [10, 20 .. 100] $ test GCL.Accu.parse GCL.Atto.parse "gcl"
+  for_ [10, 20 .. 100] $ test JSON.Accu.parse JSON.Atto.parse "json"
