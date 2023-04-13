@@ -1,9 +1,10 @@
-module GCL.Parser.Attoparsec where
+module GCL.Parser.Rednaz where
 
 import Control.Applicative((<**>), (<|>), many, optional)
 import Control.Applicative.Combinators(between, skipMany, choice, sepBy, option, skipManyTill)
 import Control.Monad.Combinators.Expr(Operator(..), makeExprParser)
-import Data.Attoparsec.Text(Parser, (<?>), endOfInput, decimal, digit, letter, signed, skipSpace, anyChar, char, endOfLine, parseOnly, string)
+import Text.Parse.Char.AttoparsecInterface(Parser, (<?>), endOfInput, decimal, digit, letter, signed, skipSpace, anyChar, char, endOfLine, runParser, string, GroupedParseError)
+import Data.List.NonEmpty (NonEmpty)
 import Data.Function(on)
 import Data.Functor(($>))
 import Data.List(groupBy, sortOn)
@@ -134,5 +135,5 @@ program =
   <*> (symbol "->" *> decl)
   <*> block
 
-parse :: Text -> Either String Program
-parse = parseOnly $ ws *> program <* endOfInput
+parse :: Text -> Either [(Text, NonEmpty GroupedParseError)] Program
+parse = runParser $ ws *> program <* endOfInput

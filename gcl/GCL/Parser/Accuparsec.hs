@@ -1,4 +1,4 @@
-module GCL.Parser.Accuparsec(parse) where
+module GCL.Parser.Accuparsec where
 
 import Control.Applicative((<**>), (<|>), many, optional)
 import Control.Applicative.Combinators(between, skipMany, choice, sepBy, option, skipManyTill)

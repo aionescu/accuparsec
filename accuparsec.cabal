@@ -66,16 +66,20 @@ library gcl
 
   hs-source-dirs: gcl
   exposed-modules:
+    Experiment
     GCL.Syntax
     GCL.Parser.Accuparsec
+    -- GCL.Parser.Rednaz
     GCL.Parser.Attoparsec
 
   build-depends:
     base >=4.15 && <5
     , accuparsec
+    -- , parser-combinators-rednaz
     , attoparsec ^>= 0.14.4
     , parser-combinators ^>= 1.3
     , text ^>= 2
+    , raw-strings-qq ^>= 1.1
 
 library json
   import: ghc-flags

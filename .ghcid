@@ -1,0 +1,1 @@
+-ac "cabal repl gcl --repl-options='-Wno-prepositive-qualified-module -Wno-missing-local-signatures -Wno-missing-import-lists -Wno-unused-packages'"
