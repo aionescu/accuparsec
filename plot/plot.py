@@ -53,15 +53,14 @@ def unmarshal_speed(benchmarks):
     """
     unmarshals to the following shape.
 
-    {prog500: {"error accumulation": 0.38561290569478285,
-           "megaparsec": 0.4973198441612616},
-     prog1000: {"error accumulation": 0.6617164389311493,
-            "megaparsec": 0.7733381483842295},
-     prog2000: {"error accumulation": 1.2625243996074444,
-            "megaparsec": 1.367987776735256},
-     prog4000: {"error accumulation": 2.4297940610620854,
-            "megaparsec": 2.532344783954995},
-      ...}
+    {'gcl': {10: {'accuparsec': 0.7020476904880393,
+                  'attoparsec': 0.9104941414657346},
+             30: {'accuparsec': 20.405967427274373,
+                  'attoparsec': 21.091928654553964},
+             ...},
+     'json': {10: {'accuparsec': 0.15545793422283005,
+                   'attoparsec': 0.23267878032048916},
+              ...}}
     """
     return {
         g: {
@@ -83,14 +82,11 @@ def plot(x_label, y_label, size, benchmarks, x_label_usetex=False, xtick_usetex=
     """
     plots data of the following shape.
     
-    {500: {"error accumulation": 0.38561290569478285,
-           "megaparsec": 0.4973198441612616},
-     1000: {"error accumulation": 0.6617164389311493,
-            "megaparsec": 0.7733381483842295},
-     2000: {"error accumulation": 1.2625243996074444,
-            "megaparsec": 1.367987776735256},
-     4000: {"error accumulation": 2.4297940610620854,
-            "megaparsec": 2.532344783954995}}
+    {10: {'accuparsec': 0.7020476904880393,
+          'attoparsec': 0.9104941414657346},
+     30: {'accuparsec': 20.405967427274373,
+          'attoparsec': 21.091928654553964},
+     ...}
     """
     tick_labels = benchmarks.keys()
     benchmarks = transpose_dictionaries(benchmarks)
