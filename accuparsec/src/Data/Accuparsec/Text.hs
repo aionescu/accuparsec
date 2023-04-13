@@ -27,8 +27,8 @@ instance Functor Parser where
   fmap :: (a -> b) -> Parser a -> Parser b
   fmap f (Parser p) = Parser \input errs ->
     case p input errs of
-      (# (# (# #) | #), errs' #) -> (# (# (# #) | #), errs' #)
       (# (# | (# a, rest #) #), errs' #) -> (# (# | (# f a, rest #) #), errs' #)
+      (# _, errs' #) -> (# (# (# #) | #), errs' #)
   {-# INLINE fmap #-}
 
 instance Applicative Parser where
@@ -39,11 +39,11 @@ instance Applicative Parser where
   (<*>) :: Parser (a -> b) -> Parser a -> Parser b
   Parser f <*> Parser a = Parser \input errs ->
     case f input errs of
-      (# (# (# #) | #), errs' #) -> (# (# (# #) | #), errs' #)
       (# (# | (# f', rest #) #), errs' #) ->
         case a rest errs' of
-          (# (# (# #) | #), errs'' #) -> (# (# (# #) | #), errs'' #)
           (# (# | (# a', rest' #) #), errs'' #) -> (# (# | (# f' a', rest' #) #), errs'' #)
+          (# _, errs'' #) -> (# (# (# #) | #), errs'' #)
+      (# _, errs' #) -> (# (# (# #) | #), errs' #)
   {-# INLINE (<*>) #-}
 
 instance Alternative Parser where
@@ -62,8 +62,8 @@ instance Monad Parser where
   (>>=) :: Parser a -> (a -> Parser b) -> Parser b
   Parser a >>= f = Parser \input errs ->
     case a input errs of
-      (# (# (# #) | #), errs' #) -> (# (# (# #) | #), errs' #)
       (# (# | (# a', rest #) #), errs' #) -> unParser (f a') rest errs'
+      (# _, errs' #) -> (# (# (# #) | #), errs' #)
   {-# INLINE (>>=) #-}
 
 instance MonadPlus Parser
@@ -76,14 +76,14 @@ instance MonadFail Parser where
 runParser :: Parser a -> Text -> Either ErrorList a
 runParser (Parser p) input =
   case p input Nil of
-    (# (# (# #) | #), errs #) -> Left errs
     (# (# | (# a, _ #) #), _ #) -> Right a
+    (# _, errs #) -> Left errs
 {-# INLINE runParser #-}
 
 (<?>) :: Parser a -> Text -> Parser a
 Parser p <?> lbl = Parser \input errs ->
   case p input errs of
-    (# result@(# | _ #), Nil #) -> (# result, Nil #)
+    result@(# (# | _ #), Nil #) -> result
     (# result, _ #) -> (# result, Nil :! Label lbl input #)
 infix 0 <?>
 {-# INLINE (<?>) #-}
