@@ -30,7 +30,7 @@ genAssert n = "  assert y == " <> T.intercalate " + " (genExpr <$> [1..n]) <> ";
 
 genProg :: Int -> Text
 genProg n =
-  "-- Program intended for parser benchmarks, with n = " <> showT n <> "\n"
+  "-- GCL program intended for parser benchmarks, with n = " <> showT n <> "\n"
   <> "prog" <> showT n <> "(" <> genInputs n <> ") -> y: Int {\n"
   <> genAssume n
   <> "  y = 0;\n"
