@@ -1,4 +1,4 @@
-module GCL.Parser.Attoparsec(parse) where
+module Language.GCL.Parser.Attoparsec(parse) where
 
 import Control.Applicative((<**>), (<|>), many, optional)
 import Control.Applicative.Combinators(skipMany, choice, sepBy, option, skipManyTill)
@@ -11,7 +11,7 @@ import Data.Ord(Down(..))
 import Data.Text(Text)
 import Data.Text qualified as T
 
-import GCL.Syntax
+import Language.GCL.Syntax
 
 ws :: Parser ()
 ws = skipSpace *> skipMany (comment *> skipSpace)

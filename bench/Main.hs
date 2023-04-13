@@ -5,12 +5,12 @@ import Criterion.Main
 import Data.Text(Text)
 import Data.Text.IO qualified as T
 
-import GCL.Parser.Accuparsec qualified as Accu
-import GCL.Parser.Attoparsec qualified as Atto
+import Language.GCL.Parser.Accuparsec qualified as Accu
+import Language.GCL.Parser.Attoparsec qualified as Atto
 
 benchParser :: (Text -> a) -> String -> Benchmark
 benchParser f name =
-  env (T.readFile $ "gcl/bench/progs/" <> name <> ".gcl")
+  env (T.readFile $ "progs/" <> name <> ".gcl")
   $ bench name . whnf f
 
 progs :: [String]

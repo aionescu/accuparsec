@@ -1,4 +1,4 @@
-module GCL.Syntax where
+module Language.GCL.Syntax where
 
 import Data.Text(Text)
 

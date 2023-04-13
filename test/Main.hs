@@ -4,12 +4,12 @@ import Data.Foldable(traverse_)
 import Data.Text.IO qualified as T
 import System.Exit(exitFailure)
 
-import GCL.Parser.Accuparsec qualified as Accu
-import GCL.Parser.Attoparsec qualified as Atto
+import Language.GCL.Parser.Accuparsec qualified as Accu
+import Language.GCL.Parser.Attoparsec qualified as Atto
 
 test :: FilePath -> IO ()
 test path = do
-  code <- T.readFile $ "bench/progs/" <> path <> ".gcl"
+  code <- T.readFile $ "progs/" <> path <> ".gcl"
   case (Accu.parse code, Atto.parse code) of
     (Left _, Left _) -> pure ()
     (Right a, Right b) | a == b -> pure ()

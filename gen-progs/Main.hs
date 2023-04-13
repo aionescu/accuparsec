@@ -5,6 +5,7 @@ import Data.Functor((<&>))
 import Data.Text(Text)
 import Data.Text qualified as T
 import Data.Text.IO qualified as T
+import System.Directory(createDirectoryIfMissing)
 
 showT :: Show a => a -> Text
 showT = T.pack . show
@@ -48,6 +49,6 @@ genProgram n =
 
 main :: IO ()
 main = do
+  createDirectoryIfMissing True "progs"
   for_ [10 :: Int, 20 .. 100] \n ->
-    T.writeFile ("gcl/bench/progs/prog" <> show n <> ".gcl")
-    $ genProgram n
+    T.writeFile ("progs/prog" <> show n <> ".gcl") $ genProgram n
