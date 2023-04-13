@@ -4,6 +4,7 @@ import json as j
 import re
 from itertools import groupby
 from operator import itemgetter
+import sys
 
 def error(text):
     raise Exception(text)
@@ -101,7 +102,7 @@ def plot(x_label, y_label, size, benchmarks, x_label_usetex=False, xtick_usetex=
     ax.legend(loc="upper left", ncol=legend_column_count if legend_column_count is not None else library_count)
     return fig
 
-with open("results/gcl_2023-04-13_01:25:09.json") as f:
+with open(sys.argv[1]) as f:
     speed = unmarshal_speed(j.load(f)[2])
 
 def plot_speed_and_save(name, x_label, size, x_label_usetex=False):
