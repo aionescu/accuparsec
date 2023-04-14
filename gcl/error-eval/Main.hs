@@ -25,31 +25,41 @@ uniquify :: Ord a => [a] -> [a]
 uniquify lst = Data.Set.toList $ fromList lst
 
 
-c :: Int -> Int
-c z = unsafePerformIO (getStdRandom (randomR (0, z - 1)))
+randomInt :: Int -> Int
+randomInt z = unsafePerformIO (getStdRandom (randomR (0, z - 1)))
 
-location x = take 1 (sort (uniquify $ map (\w -> case w of
-                  Error {remainingInput} -> Tx.length remainingInput
-                  Label {remainingInput} -> Tx.length remainingInput)
-                  (Data.SList.toList x)))
+remainingInputForError w = case w of
+                  Error {remainingInput} -> Tx.length remainingInput + 1
+                  Label {remainingInput} -> Tx.length remainingInput + 1
+
+location n = take 5 . sort . uniquify . map ((n-) . remainingInputForError) . Data.SList.toList
 
 
 closest :: Int -> [Int] -> Int
 closest n = foldr min 1000000 . map (\x -> abs (x - n))
 
+
+brokenFile :: IO (Tx.Text, Int, Int)
+brokenFile =  do
+    file <- T.readFile "tml.gcl"
+    let k = 114 -- randomInt (Tx.length file)
+    let (a, b) = Tx.splitAt k file
+    let fixed = Tx.concat [a, Tx.tail b]
+    return (fixed, k, Tx.length fixed)
+
 tryAccu :: Int -> IO Int
 tryAccu 0 = return 0
 tryAccu n = do
-  z <- T.readFile "tml.gcl"
-  print $ Tx.length z
-  let k = 114 -- c (Tx.length z)
-  let uu = (Tx.length z - k - 1)
-  let (a, b) = Tx.splitAt k z
-  let fixed = Tx.concat [a, Tx.tail b]
-  case Accu.parse fixed of
+  (broken, b, l) <- brokenFile
+  case Accu.parse broken of
       (Left x) -> do
-        -- print $ location 
-        let z = closest uu (location x)
+        let z = closest b (location l x)
+        print "Accu reported"
+        print $ location l x
+        print "Accu original"
+        print  b
+        
+        
         r <- tryAccu (n - 1)
         return (r + z)
       (Right _) -> tryAccu n
@@ -57,17 +67,16 @@ tryAccu n = do
 tryAttoParsec :: Int -> IO Int
 tryAttoParsec 0 = return 0
 tryAttoParsec n = do
-  z <- T.readFile "tml.gcl"
-  let k = 114 -- c (Tx.length z)
-  let uu = (Tx.length z - k - 1)
-  let (a, b) = Tx.splitAt k z
-  let fixed = Tx.concat [a, Tx.tail b]
-  case Atto.parseF fixed of
+  (broken, b, l) <- brokenFile
+  case Atto.parseF broken of
       (Just x) -> do
-        -- print x
-        let z = abs (x - uu)
+        let dist = abs (l - (x + 1) - b) 
+        print "Atto reported"
+        print $  l - (x + 1)
+        print "Atto original"
+        print  b
         r <- tryAttoParsec (n - 1)
-        return (r + z)
+        return (r + dist)
       Nothing -> tryAttoParsec n
 
 main :: IO ()
@@ -76,5 +85,5 @@ main = do
   print s
   s <- tryAttoParsec 1
   print s
-
+  return ()
 
