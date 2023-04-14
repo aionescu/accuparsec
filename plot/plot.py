@@ -78,7 +78,7 @@ def unmarshal_speed(benchmarks):
         )
     }
 
-def plot(x_label, y_label, size, benchmarks, x_label_usetex=False, xtick_usetex=False, rotation=None, legend_column_count=None):
+def plot(ax, x_label, y_label, benchmarks, x_label_usetex=False, xtick_usetex=False, rotation=None, legend=True):
     """
     plots data of the following shape.
     
@@ -90,7 +90,6 @@ def plot(x_label, y_label, size, benchmarks, x_label_usetex=False, xtick_usetex=
     """
     tick_labels = benchmarks.keys()
     benchmarks = transpose_dictionaries(benchmarks)
-    (fig, ax) = plt.subplots(layout="constrained", figsize=size, dpi=150)
     library_count = len(benchmarks)
     width = 1 / (library_count+1)
     for (library_index, (library, data)) in enumerate(sorted(benchmarks.items(), key=itemgetter(0))):
@@ -99,8 +98,8 @@ def plot(x_label, y_label, size, benchmarks, x_label_usetex=False, xtick_usetex=
     ax.set_ylabel(y_label)
     ax.set_xlabel(x_label, usetex=x_label_usetex)
     ax.set_xticks(x + (library_count-1) * width / 2 , tick_labels, usetex=xtick_usetex, rotation=rotation)
-    ax.legend(loc="upper left", ncol=legend_column_count if legend_column_count is not None else library_count)
-    return fig
+    if legend:
+        ax.legend(loc="upper left", ncol=library_count)
 
 with open(sys.argv[1]) as f:
     speed = unmarshal_speed(j.load(f)[2])
@@ -108,7 +107,6 @@ with open(sys.argv[1]) as f:
 # plot(
 #     "input program",
 #     "time [ms]",
-#     (3.2, 4.8),
 #     {
 #         f"\\texttt{{{input}.gcl}}": value
 #         for (input, value) in speed.items()
@@ -117,12 +115,14 @@ with open(sys.argv[1]) as f:
 #     xtick_usetex=True,
 #     rotation=45,
 #     legend_column_count=1,
-# ).savefig("bench_speed_gcl_fast.png")
+# )
+# fig.savefig("bench_speed_gcl_fast.png")
 
+(fig, ax) = plt.subplots(layout="constrained", figsize=(6.4, 4.8), dpi=150)
 plot(
+    ax,
     "input program",
     "time [ms]",
-    (6.4, 4.8),
     {
         f"\\texttt{{{input}.gcl}}": value
         for (input, value) in speed["gcl"].items()
@@ -130,12 +130,14 @@ plot(
     },
     xtick_usetex=True,
     rotation=45,
-).savefig("bench_speed_gcl_slow.png")
+)
+fig.savefig("bench_speed_gcl_slow.png")
 
+(fig, ax) = plt.subplots(layout="constrained", figsize=(6.4, 4.8), dpi=150)
 plot(
+    ax,
     "input file",
     "time [ms]",
-    (6.4, 4.8),
     {
         f"\\texttt{{{input}.json}}": value
         for (input, value) in speed["json"].items()
@@ -143,15 +145,63 @@ plot(
     },
     xtick_usetex=True,
     rotation=45,
-).savefig("bench_speed_json_slow.png")
+)
+fig.savefig("bench_speed_json_slow.png")
+
+(fig, (ax0, ax1)) = plt.subplots(2, 1, layout="constrained", figsize=(6.4, 4.8*2), dpi=150)
+plot(
+    ax0,
+    "input program",
+    "time [ms]",
+    {
+        f"\\texttt{{{input}.gcl}}": value
+        for (input, value) in speed["gcl"].items()
+        if 50 <= input
+    },
+    xtick_usetex=True,
+    rotation=45,
+)
+plot(
+    ax1,
+    "input file",
+    "time [ms]",
+    {
+        f"\\texttt{{{input}.json}}": value
+        for (input, value) in speed["json"].items()
+        if 50 <= input
+    },
+    xtick_usetex=True,
+    rotation=45,
+    legend=False,
+)
+fig.savefig("bench_speed_slow_column.png")
+
+(fig, (ax0, ax1)) = plt.subplots(1, 2, layout="constrained", figsize=(6.4*2, 4.8), dpi=150)
+plot(
+    ax0,
+    "input program",
+    "time [ms]",
+    {
+        f"\\texttt{{{input}.gcl}}": value
+        for (input, value) in speed["gcl"].items()
+        if 50 <= input
+    },
+    xtick_usetex=True,
+    rotation=45,
+)
+plot(
+    ax1,
+    "input file",
+    "time [ms]",
+    {
+        f"\\texttt{{{input}.json}}": value
+        for (input, value) in speed["json"].items()
+        if 50 <= input
+    },
+    xtick_usetex=True,
+    rotation=45,
+    legend=False,
+)
+fig.savefig("bench_speed_slow_row.png")
 
 # plt.show()
-
-# def plot_speed_and_save(name, x_label, size, x_label_usetex=False):
-#     return plot(
-#         x_label,
-#         "time in milliseconds",
-#         size,
-#         speed[name],
-#         x_label_usetex
-#     ).savefig(f"bench_{name}.png")
