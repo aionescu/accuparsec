@@ -1,0 +1,20 @@
+-- Program intended for parser benchmarks, with n = 20
+prog20(x1: Int) -> y: Int {
+  y = 0;
+  let b: Bool {
+    b = True;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      b = False;
+    }
+}
