@@ -88,6 +88,21 @@ test-suite test
     , gcl
     , text ^>= 2
 
+executable error-eval
+  import: ghc-flags
+
+  hs-source-dirs: error-eval
+  main-is: Main.hs
+
+  build-depends:
+    base >=4.15 && <5
+    , text ^>= 2
+    , accuparsec
+    , attoparsec ^>= 0.14.4
+    , gcl
+    , containers
+    , random
+
 benchmark bench
   import: ghc-flags
 
