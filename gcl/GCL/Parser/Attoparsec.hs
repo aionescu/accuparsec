@@ -1,10 +1,10 @@
-module GCL.Parser.Attoparsec(parse, parseF) where
+module GCL.Parser.Attoparsec(parse, parseWithRemainingInput) where
 
 import Control.Applicative((<**>), (<|>), many, optional)
 import Control.Applicative.Combinators(between, skipMany, choice, sepBy, option, skipManyTill)
 import Control.Monad.Combinators.Expr(Operator(..), makeExprParser)
 import Data.Attoparsec.Text(Parser, (<?>), endOfInput, decimal, digit, letter, signed, skipSpace, anyChar, char, endOfLine, parseOnly, string)
-import Data.Attoparsec.Text qualified as TT 
+import Data.Attoparsec.Text qualified as A
 import Data.Function(on)
 import Data.Functor(($>))
 import Data.List(groupBy, sortOn)
@@ -13,7 +13,6 @@ import Data.Text(Text)
 import Data.Text qualified as T
 
 import GCL.Syntax
-import qualified Data.Foldable as TT
 
 ws :: Parser ()
 ws = skipSpace *> skipMany (comment *> skipSpace)
@@ -138,11 +137,11 @@ program =
 
 
 
-parseF :: Text -> Maybe Int
-parseF z = let x = TT.parse $ ws *> program <* endOfInput in case x z of
-  TT.Fail r _ _ -> Just $ T.length r
-  _                  -> Nothing
-
+parseWithRemainingInput :: Text -> Maybe Int
+parseWithRemainingInput input =
+  case A.parse (ws *> program <* endOfInput) input of
+    A.Fail rest _ _ -> Just $ T.length rest
+    _ -> Nothing
 
 parse :: Text -> Either String Program
 parse = parseOnly $ ws *> program <* endOfInput
