@@ -1,0 +1,151 @@
+cabal-version: 3.6
+
+name: accuparsec
+version: 0.0.0.0
+build-type: Simple
+
+common ghc-flags
+  default-language: GHC2021
+
+  default-extensions:
+    ApplicativeDo
+    BlockArguments
+    DataKinds
+    DefaultSignatures
+    DeriveAnyClass
+    DerivingStrategies
+    DerivingVia
+    DuplicateRecordFields
+    FunctionalDependencies
+    GADTs
+    GeneralizedNewtypeDeriving
+    LambdaCase
+    LexicalNegation
+    MagicHash
+    MultiWayIf
+    NegativeLiterals
+    NoMonomorphismRestriction
+    NoStarIsType
+    OverloadedStrings
+    PartialTypeSignatures
+    PatternSynonyms
+    QuantifiedConstraints
+    RecordWildCards
+    RecursiveDo
+    TypeFamilies
+    TypeFamilyDependencies
+    UnboxedTuples
+    UndecidableInstances
+    ViewPatterns
+
+  ghc-options:
+    -Wall
+    -Wcompat
+    -Widentities
+    -Wmissing-deriving-strategies
+    -Wno-name-shadowing
+    -Wno-unticked-promoted-constructors
+    -Wprepositive-qualified-module
+    -Wredundant-constraints
+    -Wunused-packages
+
+library
+  import: ghc-flags
+
+  hs-source-dirs: accuparsec
+  exposed-modules:
+    Data.Accuparsec.Text
+    Data.SList
+
+  build-depends:
+    base >=4.15 && <5
+    , text ^>= 2
+
+library gcl
+  import: ghc-flags
+
+  hs-source-dirs: gcl
+  exposed-modules:
+    GCL.Syntax
+    GCL.Parser.Accuparsec
+    GCL.Parser.Attoparsec
+
+  build-depends:
+    base >=4.15 && <5
+    , accuparsec
+    , attoparsec ^>= 0.14.4
+    , parser-combinators ^>= 1.3
+    , text ^>= 2
+
+library json
+  import: ghc-flags
+
+  hs-source-dirs: json
+  exposed-modules:
+    JSON.Syntax
+    JSON.Parser.Accuparsec
+    JSON.Parser.Attoparsec
+
+  build-depends:
+    base >=4.15 && <5
+    , accuparsec
+    , attoparsec ^>= 0.14.4
+    , containers ^>= 0.6.7
+    , parser-combinators ^>= 1.3
+    , text ^>= 2
+
+executable gen-progs
+  import: ghc-flags
+
+  hs-source-dirs: gen-progs
+  main-is: Main.hs
+  other-modules:
+    GCL
+    JSON
+
+  build-depends:
+    base >=4.15 && <5
+    , directory ^>= 1.3.8
+    , text ^>= 2
+
+test-suite test
+  import: ghc-flags
+
+  type: exitcode-stdio-1.0
+  hs-source-dirs: test
+  main-is: Main.hs
+
+  build-depends:
+    base >=4.15 && <5
+    , accuparsec:gcl
+    , accuparsec:json
+    , text ^>= 2
+
+executable error-eval
+  import: ghc-flags
+
+  hs-source-dirs: error-eval
+  main-is: Main.hs
+
+  build-depends:
+    base >=4.15 && <5
+    , text ^>= 2
+    , accuparsec
+    , attoparsec ^>= 0.14.4
+    , gcl
+    , containers
+    , random
+
+benchmark bench
+  import: ghc-flags
+
+  type: exitcode-stdio-1.0
+  hs-source-dirs: bench
+  main-is: Main.hs
+
+  build-depends:
+    base >=4.15 && <5
+    , criterion ^>= 1.6
+    , accuparsec:gcl
+    , accuparsec:json
+    , text ^>= 2
