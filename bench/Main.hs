@@ -1,48 +1,30 @@
 module Main(main) where
 
 import Criterion.Main
-import Data.Char(isDigit)
-import Data.List(sortOn)
+import Data.List(sort)
 import Data.Text(Text)
-import Data.Text qualified as T
 import Data.Text.IO qualified as T
 import System.Directory(listDirectory)
-import Text.Printf(printf)
 
 import GCL.Parser.Accuparsec qualified as GCL.Accu
 import GCL.Parser.Attoparsec qualified as GCL.Atto
 import JSON.Parser.Accuparsec qualified as JSON.Accu
 import JSON.Parser.Attoparsec qualified as JSON.Atto
-import System.FilePath ((</>))
 
-readProgs :: FilePath -> IO [(String, Text)]
-readProgs dir =
-  traverse (fmap withSize . T.readFile . (dir </>))
-  . sortOn (read @Int . takeWhile isDigit)
-  =<< listDirectory dir
+benchProg :: (Text -> a) -> FilePath -> FilePath -> Benchmark
+benchProg parser lang file =
+  env (T.readFile path) $ bench file . whnf parser
   where
-    withSize t = size `seq` (size, t)
-      where
-        bytes = T.length t
-        size
-          | bytes < 1024 = show bytes <> " B"
-          | bytes < 1024 * 1024 = bytes `fmtDiv` 1024 <> " KiB"
-          | otherwise = bytes `fmtDiv` (1024 * 1024) <> " MiB"
-
-fmtDiv :: Int -> Double -> String
-fmtDiv d q = printf "%.2f" (fromIntegral d / q)
-
-bench' :: (Text -> b) -> (String, Text) -> Benchmark
-bench' parser (size, input) = bench size $ whnf parser input
+    path = "progs/" <> lang <> "/" <> file
 
 main :: IO ()
 main = do
-  gclProgs <- readProgs "progs/gcl"
-  jsonProgs <- readProgs "progs/json"
+  gclProgs <- sort <$> listDirectory "progs/gcl"
+  jsonProgs <- sort <$> listDirectory "progs/json"
 
   defaultMain
-    [ bgroup "gcl/accu" $ bench' GCL.Accu.parse <$> gclProgs
-    , bgroup "gcl/atto" $ bench' GCL.Atto.parse <$> gclProgs
-    , bgroup "json/accu" $ bench' JSON.Accu.parse <$> jsonProgs
-    , bgroup "json/atto" $ bench' JSON.Atto.parse <$> jsonProgs
+    [ bgroup "gcl/accu" $ benchProg GCL.Accu.parse "gcl" <$> gclProgs
+    , bgroup "gcl/atto" $ benchProg GCL.Atto.parse "gcl" <$> gclProgs
+    , bgroup "json/accu" $ benchProg JSON.Accu.parse "json" <$> jsonProgs
+    , bgroup "json/atto" $ benchProg JSON.Atto.parse "json" <$> jsonProgs
     ]

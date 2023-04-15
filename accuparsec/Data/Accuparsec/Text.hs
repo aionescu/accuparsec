@@ -77,7 +77,7 @@ runParser :: Parser a -> Text -> Either ErrorList a
 runParser (Parser p) input =
   case p input Nil of
     (# (# | (# a, _ #) #), _ #) -> Right a
-    (# _, errs #) -> Left errs
+    (# _, !errs #) -> Left errs
 {-# INLINE runParser #-}
 
 (<?>) :: Parser a -> Text -> Parser a

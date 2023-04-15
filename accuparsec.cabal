@@ -148,5 +148,4 @@ benchmark bench
     , accuparsec:json
     , criterion ^>= 1.6
     , directory ^>= 1.3.8
-    , filepath ^>= 1.4.100
     , text ^>= 2
