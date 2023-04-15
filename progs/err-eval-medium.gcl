@@ -1,0 +1,206 @@
+-- Program intended for parser benchmarks, with n = 20
+prog20(x1: Int, x2: Int, x3: Int, x4: Int, x5: Int, x6: Int, x7: Int, x8: Int, x9: Int, x10: Int, x11: Int, x12: Int, x13: Int, x14: Int, x15: Int, x16: Int, x17: Int, x18: Int, x19: Int, x20: Int, x21: Int, x22: Int, x23: Int, x24: Int, x25: Int, x26: Int, x27: Int, x28: Int, x29: Int, x30: Int) -> y: Int {
+  y = 0;
+  let b: Bool {
+    b = True;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      b = False;
+    }
+  let b: Bool {
+    b = True;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      b = False;
+    } 
+
+  let b: Bool {
+    b = True;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      b = False;
+    } 
+
+      y = 0;
+  let b: Bool {
+    b = True;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      b = False;
+    }
+  let b: Bool {
+    b = True;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      b = False;
+    } 
+
+  let b: Bool {
+    b = True;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      b = False;
+    } 
+
+      y = 0;
+  let b: Bool {
+    b = True;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      b = False;
+    }
+  let b: Bool {
+    b = True;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      b = False;
+    } 
+
+  let b: Bool {
+    b = True;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      b = False;
+    } 
+
+      y = 0;
+  let b: Bool {
+    b = True;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      b = False;
+    }
+  let b: Bool {
+    b = True;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      b = False;
+    } 
+
+  let b: Bool {
+    b = True;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      y = y + x1;
+      b = False;
+    } 
+}
