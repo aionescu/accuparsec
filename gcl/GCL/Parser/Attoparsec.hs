@@ -4,6 +4,7 @@ import Control.Applicative((<**>), (<|>), many, optional)
 import Control.Applicative.Combinators(between, skipMany, choice, sepBy, option, skipManyTill)
 import Control.Monad.Combinators.Expr(Operator(..), makeExprParser)
 import Data.Attoparsec.Text(Parser, (<?>), endOfInput, decimal, digit, letter, signed, skipSpace, anyChar, char, endOfLine, parseOnly, string)
+import Data.Attoparsec.Text qualified as A
 import Data.Function(on)
 import Data.Functor(($>))
 import Data.List(groupBy, sortOn)
@@ -133,6 +134,14 @@ program =
   <*> btwn "(" ")" decls
   <*> (symbol "->" *> decl)
   <*> block
+
+
+
+parseWithRemainingInput :: Text -> Maybe Int
+parseWithRemainingInput input =
+  case A.parse (ws *> program <* endOfInput) input of
+    A.Fail rest _ _ -> Just $ T.length rest
+    _ -> Nothing
 
 parse :: Text -> Either String Program
 parse = parseOnly $ ws *> program <* endOfInput
