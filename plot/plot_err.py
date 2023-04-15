@@ -1,10 +1,11 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-accu = [123, 123, 123]
-atto = [123, 12, 131]
+accu = [1.18, 18.13, 79.62]
+atto = [95.1, 99, 114.54]
 
-lengths = ["24", "43", "1111"]
+
+lengths = ["363", "3658", "17661"]
 width = 1 / len(accu)
  
 (fig, ax) = plt.subplots(layout="constrained", figsize=(6.4, 4.8), dpi=150)
