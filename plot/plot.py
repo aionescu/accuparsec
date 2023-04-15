@@ -5,6 +5,7 @@ import re
 from itertools import groupby
 from operator import itemgetter
 import sys
+from decimal import Decimal
 
 def error(text):
     raise Exception(text)
@@ -36,16 +37,23 @@ def transpose_dictionaries(dictionary):
         )
     }
 
-bench_name_speed = re.compile(r"([^/]+)/([^/]+)/([^/]+)")
+bench_name_speed = re.compile(r"([^/]+)/([^/]+)/([^ ]+)( .+)")
 
 def parse_bench_name(name):
     reMatch = bench_name_speed.fullmatch(name)
+    match reMatch[4]:
+        case " B":
+            unit = 1
+        case " KiB":
+            unit = 1024
+        case " MiB":
+            unit = 1024 * 1024
     return {
         "library":
             "accuparsec" if reMatch[2] == "accu" else
             "attoparsec" if reMatch[2] == "atto" else
             error("unknown library"),
-        "input": int(reMatch[3]),
+        "input": (Decimal(reMatch[3]) * unit, f"{reMatch[3]}{reMatch[4]}"),
         "grammar": reMatch[1]
     }
 
@@ -69,7 +77,7 @@ def unmarshal_speed(benchmarks):
             }
             for (i, data1) in group_sorted(data0, key=itemgetter("input"))
         }
-        for (g, data0) in groupby(
+        for (g, data0) in group_sorted(
             (
                 {**parse_bench_name(c["reportName"]), "value": c["reportAnalysis"]["anRegress"][0]["regCoeffs"]["iters"]["estPoint"] * 10**3}
                 for c in benchmarks
@@ -104,31 +112,16 @@ def plot(ax, x_label, y_label, benchmarks, x_label_usetex=False, xtick_usetex=Fa
 with open(sys.argv[1]) as f:
     speed = unmarshal_speed(j.load(f)[2])
 
-# plot(
-#     "input program",
-#     "time [ms]",
-#     {
-#         f"\\texttt{{{input}.gcl}}": value
-#         for (input, value) in speed.items()
-#         if input < 30
-#     },
-#     xtick_usetex=True,
-#     rotation=45,
-#     legend_column_count=1,
-# )
-# fig.savefig("bench_speed_gcl_fast.png")
-
 (fig, ax) = plt.subplots(layout="constrained", figsize=(6.4, 4.8), dpi=150)
 plot(
     ax,
     "input program",
     "time [ms]",
     {
-        f"\\texttt{{{input}.gcl}}": value
+        input[1]: value
         for (input, value) in speed["gcl"].items()
-        if 50 <= input
+        if Decimal("483.20") * 1024 <= input[0]
     },
-    xtick_usetex=True,
     rotation=45,
 )
 fig.savefig("bench_speed_gcl_slow.png")
@@ -139,69 +132,12 @@ plot(
     "input file",
     "time [ms]",
     {
-        f"\\texttt{{{input}.json}}": value
+        input[1]: value
         for (input, value) in speed["json"].items()
-        if 50 <= input
+        if Decimal("621.71") * 1024 <= input[0]
     },
-    xtick_usetex=True,
     rotation=45,
 )
 fig.savefig("bench_speed_json_slow.png")
-
-(fig, (ax0, ax1)) = plt.subplots(2, 1, layout="constrained", figsize=(6.4, 4.8*2), dpi=150)
-plot(
-    ax0,
-    "input program",
-    "time [ms]",
-    {
-        f"\\texttt{{{input}.gcl}}": value
-        for (input, value) in speed["gcl"].items()
-        if 50 <= input
-    },
-    xtick_usetex=True,
-    rotation=45,
-)
-plot(
-    ax1,
-    "input file",
-    "time [ms]",
-    {
-        f"\\texttt{{{input}.json}}": value
-        for (input, value) in speed["json"].items()
-        if 50 <= input
-    },
-    xtick_usetex=True,
-    rotation=45,
-    legend=False,
-)
-fig.savefig("bench_speed_slow_column.png")
-
-(fig, (ax0, ax1)) = plt.subplots(1, 2, layout="constrained", figsize=(6.4*2, 4.8), dpi=150)
-plot(
-    ax0,
-    "input program",
-    "time [ms]",
-    {
-        f"\\texttt{{{input}.gcl}}": value
-        for (input, value) in speed["gcl"].items()
-        if 50 <= input
-    },
-    xtick_usetex=True,
-    rotation=45,
-)
-plot(
-    ax1,
-    "input file",
-    "time [ms]",
-    {
-        f"\\texttt{{{input}.json}}": value
-        for (input, value) in speed["json"].items()
-        if 50 <= input
-    },
-    xtick_usetex=True,
-    rotation=45,
-    legend=False,
-)
-fig.savefig("bench_speed_slow_row.png")
 
 # plt.show()
