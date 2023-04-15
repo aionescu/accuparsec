@@ -83,8 +83,8 @@ runParser (Parser p) input =
 (<?>) :: Parser a -> Text -> Parser a
 Parser p <?> lbl = Parser \input errs ->
   case p input errs of
-    result@(# (# | _ #), Nil #) -> result
-    (# result, _ #) -> (# result, Nil :! Label lbl input #)
+    (# (# (# #) | #), _ #) -> (# (# (# #) | #), errs :! Label lbl input #)
+    result -> result
 infix 0 <?>
 {-# INLINE (<?>) #-}
 
