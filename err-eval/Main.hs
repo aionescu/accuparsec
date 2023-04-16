@@ -10,17 +10,16 @@ import Data.Text qualified as T
 import Data.Text.IO qualified as T
 import System.Random(randomRIO)
 
-import Data.Accuparsec.Text(ErrorList, remainingInput)
-import Data.SList(toList)
+import Data.Accuparsec.Text(ParseError(..))
 import GCL.Parser.Accuparsec qualified as Accu
 import GCL.Parser.Attoparsec qualified as Atto
 
 randomInt :: Int -> IO Int
 randomInt n = randomRIO (0, n - 1)
 
-location :: Int -> ErrorList -> [Int]
+location :: Int -> [ParseError] -> [Int]
 location n =
-  take 5 . map (n-) . sort . nubOrd . fmap ((+ 1) . T.length . remainingInput) . Data.SList.toList
+  take 5 . map (n-) . sort . nubOrd . fmap ((+ 1) . T.length . remainingInput)
 
 closest :: Int -> [Int] -> Int
 closest n = minimum . fmap (\x -> abs (x - n))
@@ -67,15 +66,16 @@ tryAttoParsec name n = do
         return (r + dist)
       Nothing -> tryAttoParsec name n
 
+errBench :: FilePath -> IO ()
 errBench name = do
   print name
   file <- T.readFile name
   putStrLn "Input length"
   print $ T.length file
   case Accu.parse file of
-    Left _ -> print "incorrect input"
+    Left _ -> putStrLn "incorrect input"
     Right _ -> return ()
-  s <- tryAccu name 10000 
+  s <- tryAccu name 10000
   print s
   s <- tryAttoParsec name 10000
   print s

@@ -1,19 +1,20 @@
 module JSON.Parser.Attoparsec(parse) where
 
 import Control.Applicative((<|>), many)
-import Control.Applicative.Combinators(between, skipMany, choice, sepBy, skipManyTill)
-import Data.Attoparsec.Text(Parser, (<?>), endOfInput, decimal, satisfy, signed, skipSpace, anyChar, char, endOfLine, parseOnly, string)
+import Control.Applicative.Combinators(between, skipMany, choice, sepBy)
+import Data.Attoparsec.Text(Parser, (<?>), endOfInput, decimal, satisfy, signed, skipSpace, takeWhile, char, endOfLine, parseOnly, string)
 import Data.Function(on)
 import Data.Map.Strict qualified as M
 import Data.Text(Text)
 import Data.Text qualified as T
+import Prelude hiding (takeWhile)
 
 import JSON.Syntax
 
 ws :: Parser ()
-ws = skipSpace *> skipMany (comment *> skipSpace)
+ws = skipSpace *> skipMany (comment *> skipSpace) <?> "whitespace or comment"
   where
-    comment = string "//" *> skipManyTill anyChar endOfLine
+    comment = string "//" *> takeWhile (\c -> c /= '\r' && c /= '\n') *> endOfLine
 
 lexeme :: Parser a -> Parser a
 lexeme p = p <* ws
@@ -27,19 +28,15 @@ btwn = between `on` symbol
 quotedString :: Parser Text
 quotedString = T.pack <$> lexeme (between (char '"') (char '"') (many $ escaped <|> regular)) <?> "quoted string"
   where
-    escaped = char '\\' *> (unescape <$> satisfy (`T.elem` "\\\"0nrvtbf"))
-    regular = satisfy $ not . (`T.elem` "\\\"\0\n\r\v\t\b\f")
+    escaped = char '\\' *> (unescape <$> satisfy \c -> c == '\\' || c == '"' || c == '\n' || c == '\r' || c == '\t')
+    regular = satisfy \c -> c /= '\\' && c /= '"' && c /= '\n' && c /= '\r' && c /= '\t'
 
     unescape = \case
       '\\' -> '\\'
       '"' -> '"'
-      '0' -> '\0'
       'n' -> '\n'
       'r' -> '\r'
-      'v' -> '\v'
       't' -> '\t'
-      'b' -> '\b'
-      'f' -> '\f'
       a -> a
 
 object :: Parser [(Text, JSON)]

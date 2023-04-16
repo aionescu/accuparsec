@@ -10,12 +10,19 @@ showB :: Bool -> Text
 showB True = "true"
 showB False = "false"
 
+genSimpleUser :: Int -> Text
+genSimpleUser n =
+  "{ \"name\": \"User #" <> showT n
+  <> "\", \"id\": " <> showT n
+  <> ", \"isEven\": " <> showB (even n)
+  <> " }"
+
 genUser :: Int -> Text
 genUser n =
   "{ \"name\": \"User #" <> showT n
   <> "\", \"id\": " <> showT n
   <> ", \"isEven\": " <> showB (even n)
-  <> ", \"coworkers\": [" <> T.intercalate ", " (genUser <$> [1 .. n `quot` 2]) <> "]"
+  <> ", \"coworkers\": [" <> T.intercalate ", " (genSimpleUser <$> [1 .. n]) <> "]"
   <> " }"
 
 genProg :: Int -> Text

@@ -5,18 +5,21 @@ import Control.Monad(MonadPlus)
 import Data.Char(isDigit, isLetter, ord, isSpace)
 import Data.Text(Text)
 import Data.Text qualified as T
-
-import Data.SList
+import GHC.Base(UnliftedType)
 
 showT :: Show a => a -> Text
 showT = T.pack . show
 
-data ParseError
-  = Error { expected :: !Text, remainingInput :: Text }
-  | Label { label :: !Text, remainingInput :: Text }
-  deriving stock (Show)
+data ErrorList :: UnliftedType where
+  Nil :: ErrorList
+  Snoc :: { expected :: !Text, remainingInput :: Text, rest :: ErrorList } -> ErrorList
 
-type ErrorList = SList ParseError
+data ParseError = ParseError { expected :: Text, remainingInput :: Text }
+  deriving stock Show
+
+errorsToList :: ErrorList -> [ParseError]
+errorsToList Nil = []
+errorsToList (Snoc expected remainingInput rest) = ParseError{..} : errorsToList rest
 
 newtype Parser a =
   Parser
@@ -48,7 +51,7 @@ instance Applicative Parser where
 
 instance Alternative Parser where
   empty :: Parser a
-  empty = Parser \input errs -> errs `seq` (# (# (# #) | #), errs :! Label "empty" input #)
+  empty = Parser \input errs -> (# (# (# #) | #), Snoc "empty" input errs #)
   {-# INLINE empty #-}
 
   (<|>) :: Parser a -> Parser a -> Parser a
@@ -70,21 +73,21 @@ instance MonadPlus Parser
 
 instance MonadFail Parser where
   fail :: String -> Parser a
-  fail msg = Parser \input errs -> errs `seq` (# (# (# #) | #), errs :! Label (T.pack msg) input #)
+  fail msg = Parser \input errs -> (# (# (# #) | #), Snoc (T.pack msg) input errs #)
   {-# INLINE fail #-}
 
-runParser :: Parser a -> Text -> Either ErrorList a
+runParser :: Parser a -> Text -> Either [ParseError] a
 runParser (Parser p) input =
   case p input Nil of
     (# (# | (# a, _ #) #), _ #) -> Right a
-    (# _, !errs #) -> Left errs
+    (# _, errs #) -> Left $ errorsToList errs
 {-# INLINE runParser #-}
 
 (<?>) :: Parser a -> Text -> Parser a
 Parser p <?> lbl = Parser \input errs ->
   case p input errs of
-    (# (# (# #) | #), _ #) -> (# (# (# #) | #), errs :! Label lbl input #)
-    result -> result
+    (# (# (# #) | #), _ #) -> (# (# (# #) | #), Snoc lbl input errs #)
+    (# (# | (# a, rest #) #), _ #) -> (# (# | (# a, rest #) #), errs #)
 infix 0 <?>
 {-# INLINE (<?>) #-}
 
@@ -92,35 +95,35 @@ endOfInput :: Parser ()
 endOfInput = Parser \input errs ->
   if T.null input
   then (# (# | (# (), input #) #), errs #)
-  else errs `seq` (# (# (# #) | #), errs :! Error "end of input" input #)
+  else (# (# (# #) | #), Snoc "end of input" input errs #)
 {-# INLINE endOfInput #-}
 
 char :: Char -> Parser Char
 char c = Parser \input errs ->
   case T.uncons input of
     Just (c', rest) | c == c' -> (# (# | (# c', rest #) #), errs #)
-    _ -> errs `seq` (# (# (# #) | #), errs :! Error (showT c) input #)
+    _ -> (# (# (# #) | #), Snoc (showT c) input errs #)
 {-# INLINE char #-}
 
 string :: Text -> Parser Text
 string s = Parser \input errs ->
   if s `T.isPrefixOf` input
   then (# (# | (# s, T.drop (T.length s) input #) #), errs #)
-  else errs `seq` (# (# (# #) | #), errs :! Error (showT s) input #)
+  else (# (# (# #) | #), Snoc (showT s) input errs #)
 {-# INLINE string #-}
 
 anyChar :: Parser Char
 anyChar = Parser \input errs ->
   case T.uncons input of
     Just (c, rest) -> (# (# | (# c, rest #) #), errs #)
-    _ -> errs `seq` (# (# (# #) | #), errs :! Error "any character" input #)
+    _ -> (# (# (# #) | #), Snoc "any character" input errs #)
 {-# INLINE anyChar #-}
 
 satisfy :: (Char -> Bool) -> Parser Char
 satisfy p = Parser \input errs ->
   case T.uncons input of
     Just (c, rest) | p c -> (# (# | (# c, rest #) #), errs #)
-    _ -> errs `seq` (# (# (# #) | #), errs :! Label "satisfy" input #)
+    _ -> (# (# (# #) | #), Snoc "satisfy" input errs #)
 {-# INLINE satisfy #-}
 
 digit :: Parser Char
@@ -131,13 +134,19 @@ letter :: Parser Char
 letter = satisfy isLetter <?> "letter"
 {-# INLINE letter #-}
 
+takeWhile :: (Char -> Bool) -> Parser Text
+takeWhile p = Parser \input errs ->
+  case T.span p input of
+    (prefix, rest) -> (# (# | (# prefix, rest #) #), errs #)
+{-# INLINE takeWhile #-}
+
 takeWhile1 :: (Char -> Bool) -> Parser Text
 takeWhile1 p = Parser \input errs ->
   case T.span p input of
     (prefix, rest) ->
       if T.null prefix
-      then (# (# (# #) | #), errs :! Label "takeWhile1" input #)
-      else errs `seq` (# (# | (# prefix, rest #) #), errs #)
+      then (# (# (# #) | #), Snoc "takeWhile1" input errs #)
+      else (# (# | (# prefix, rest #) #), errs #)
 {-# INLINE takeWhile1 #-}
 
 decimal :: Integral a => Parser a
@@ -157,7 +166,7 @@ signed (Parser p) = Parser \input errs ->
         (# (# | (# a, rest' #) #), errs' #) -> (# (# | (# negate a, rest' #) #), errs' #)
         result -> result
     Just ('+', rest) -> p rest errs
-    _ -> errs `seq` p input (errs :! Error "'-'" input :! Error "'+'" input)
+    _ -> p input (Snoc "'+'" input (Snoc "'-'" input errs))
 {-# SPECIALISE signed :: Parser Int -> Parser Int #-}
 {-# SPECIALISE signed :: Parser Word -> Parser Word #-}
 {-# SPECIALISE signed :: Parser Integer -> Parser Integer #-}
@@ -175,5 +184,5 @@ endOfLine = Parser \input errs ->
       case T.uncons rest of
         Just ('\n', rest') -> (# (# | (# (), rest' #) #), errs #)
         _ -> (# (# | (# (), rest #) #), errs #)
-    _ -> errs `seq` (# (# (# #) | #), errs :! Error "end of line" input #)
+    _ -> (# (# (# #) | #), Snoc "end of line" input errs #)
 {-# INLINE endOfLine #-}
