@@ -1,7 +1,7 @@
 module JSON.Parser.Attoparsec(parse) where
 
 import Control.Applicative((<|>), many)
-import Control.Applicative.Combinators(between, skipMany, choice, sepBy)
+import Control.Applicative.Combinators(between, skipMany, sepBy)
 import Data.Attoparsec.Text(Parser, (<?>), endOfInput, decimal, satisfy, signed, skipSpace, takeWhile, char, endOfLine, parseOnly, string)
 import Data.Function(on)
 import Data.Map.Strict qualified as M
@@ -53,15 +53,13 @@ checkDuplicates fields
 
 json :: Parser JSON
 json =
-  choice
-  [ Null <$ symbol "null"
-  , Bool True <$ symbol "true"
-  , Bool False <$ symbol "false"
-  , Number <$> lexeme (signed decimal)
-  , String <$> quotedString
-  , Array <$> btwn "[" "]" (json `sepBy` symbol ",")
-  , object >>= checkDuplicates
-  ]
+  Null <$ symbol "null"
+  <|> Bool True <$ symbol "true"
+  <|> Bool False <$ symbol "false"
+  <|> Number <$> lexeme (signed decimal)
+  <|> String <$> quotedString
+  <|> Array <$> btwn "[" "]" (json `sepBy` symbol ",")
+  <|> (object >>= checkDuplicates)
 
 parse :: Text -> Either String JSON
 parse = parseOnly $ ws *> json <* endOfInput

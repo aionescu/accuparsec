@@ -1,12 +1,11 @@
 module GCL.Parser.Accuparsec(parse) where
 
-import Control.Applicative((<**>), (<|>), many, optional)
-import Control.Applicative.Combinators(between, skipMany, choice, sepBy, option)
+import Control.Applicative((<|>), many)
+import Control.Applicative.Combinators(between, skipMany, sepBy, option)
 import Control.Monad.Combinators.Expr(Operator(..), makeExprParser)
-import Data.Accuparsec.Text(Parser, ParseError, (<?>), endOfInput, takeWhile, decimal, signed, skipSpace, endOfLine, runParser, string, satisfy)
+import Data.Accuparsec.Text(Parser, ErrorList, (<?>), endOfInput, takeWhile, decimal, signed, skipSpace, endOfLine, runParser, string, satisfy)
 import Data.Char(isDigit, isLetter)
 import Data.Function(on)
-import Data.Functor(($>))
 import Data.List(groupBy, sortOn)
 import Data.Ord(Down(..))
 import Data.Text(Text)
@@ -51,27 +50,25 @@ ident =
 
 primType :: Parser Type
 primType =
-  symbol "Int" $> Int
-  <|> symbol "Bool" $> Bool
-  <|> symbol "Ref" $> Ref
+  Int <$ symbol "Int"
+  <|> Bool <$ symbol "Bool"
+  <|> Ref <$ symbol "Ref"
 
 type' :: Parser Type
 type' = primType <|> Array <$> btwn "[" "]" primType
 
 exprAtom :: Parser Expr
 exprAtom =
-  choice
-  [ IntLit <$> lexeme (signed decimal)
-  , BoolLit True <$ symbol "True"
-  , BoolLit False <$ symbol "False"
-  , Null <$ symbol "null"
-  , Subscript <$> (Var <$> ident) <*> btwn "[" "]" expr
-  , ident <**> option Var (symbol "." *> symbol "val" $> GetVal)
-  , Length <$> (symbol "#" *> ident)
-  , Forall <$> (symbol "forall" *> ident <* symbol ".") <*> expr
-  , Exists <$> (symbol "exists" *> ident <* symbol ".") <*> expr
-  , btwn "(" ")" expr
-  ]
+  IntLit <$> lexeme (signed decimal)
+  <|> BoolLit True <$ symbol "True"
+  <|> BoolLit False <$ symbol "False"
+  <|> Null <$ symbol "null"
+  <|> Subscript <$> (Var <$> ident) <*> btwn "[" "]" expr
+  <|> (\a f -> f a) <$> ident <*> option Var (GetVal <$ symbol "." <* symbol "val")
+  <|> Length <$> (symbol "#" *> ident)
+  <|> Forall <$> (symbol "forall" *> ident <* symbol ".") <*> expr
+  <|> Exists <$> (symbol "exists" *> ident <* symbol ".") <*> expr
+  <|> btwn "(" ")" expr
 
 operatorTable :: [[Operator Parser Expr]]
 operatorTable =
@@ -96,24 +93,21 @@ expr = makeExprParser exprAtom operatorTable
 
 stmtSimple :: Parser Stmt
 stmtSimple =
-  choice
-  [ Skip <$ symbol "skip"
-  , Assume <$> (symbol "assume" *> expr)
-  , Assert <$> (symbol "assert" *> expr)
-  , AssignIndex <$> ident <*> (btwn "[" "]" expr <* symbol "=") <*> expr
-  , AssignVal <$> ident <* symbol "." <* symbol "val" <* symbol "=" <*> expr
-  , AssignNew <$> ident <* symbol "=" <* symbol "new" <*> expr
-  , Assign <$> (ident <* symbol "=") <*> expr
-  ] <* symbol ";"
+  (Skip <$ symbol "skip"
+  <|> Assume <$> (symbol "assume" *> expr)
+  <|> Assert <$> (symbol "assert" *> expr)
+  <|> AssignIndex <$> ident <*> (btwn "[" "]" expr <* symbol "=") <*> expr
+  <|> AssignVal <$> ident <* symbol "." <* symbol "val" <* symbol "=" <*> expr
+  <|> AssignNew <$> ident <* symbol "=" <* symbol "new" <*> expr
+  <|> Assign <$> (ident <* symbol "=") <*> expr
+  ) <* symbol ";"
 
 stmtCompound :: Parser Stmt
 stmtCompound =
-  choice
-  [ If <$> (symbol "if" *> expr) <*> block <*> option Skip (symbol "else" *> block)
-  , While <$> (symbol "while" *> expr) <*> block
-  , Let <$> (symbol "let" *> decls) <*> block
-  , block
-  ] <* optional (symbol ";")
+  If <$> (symbol "if" *> expr) <*> block <*> option Skip (symbol "else" *> block)
+  <|> While <$> (symbol "while" *> expr) <*> block
+  <|> Let <$> (symbol "let" *> decls) <*> block
+  <|> block
 
 stmt :: Parser Stmt
 stmt = stmtSimple <|> stmtCompound
@@ -135,5 +129,5 @@ program =
   <*> (symbol "->" *> decl)
   <*> block
 
-parse :: Text -> Either [ParseError] Program
+parse :: Text -> Either ErrorList Program
 parse = runParser $ ws *> program <* endOfInput

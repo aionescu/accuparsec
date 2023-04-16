@@ -15,7 +15,7 @@ import JSON.Parser.Attoparsec qualified as JSON.Atto
 failWith :: FilePath -> String -> IO ()
 failWith path msg = putStrLn (path <> ": " <> msg) *> exitFailure
 
-test :: Eq a => String -> (Text -> Either [e] a) -> (Text -> Either String a) -> IO ()
+test :: Eq a => String -> (Text -> Either e a) -> (Text -> Either String a) -> IO ()
 test lang accu atto = do
   files <- listDirectory $ "progs/" <> lang
 

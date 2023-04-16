@@ -7,7 +7,7 @@ atto = [95.1, 99, 114.54]
 
 lengths = ["363", "3658", "17661"]
 width = 1 / len(accu)
- 
+
 (fig, ax) = plt.subplots(layout="constrained", figsize=(6.4, 4.8), dpi=150)
 
 indices = np.arange(len(lengths))
@@ -21,5 +21,5 @@ ax.set_xticklabels(lengths)
 ax.set_ylabel("Average distance from error")
 ax.set_xlabel("Input size", usetex=False)
 
-fig.savefig("err.png")
+fig.savefig("plot/err.png")
 # fig.show()

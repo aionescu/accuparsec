@@ -19,7 +19,8 @@ genProgs lang gen ns = do
 
   for_ ns \n -> do
     let
-      n' = show n
+      n'' = show n
+      n' = replicate (3 - length n'') '0' <> n''
 
       prog = gen n
       progErr = mkErr prog
@@ -30,5 +31,5 @@ genProgs lang gen ns = do
 
 main :: IO ()
 main = do
-  genProgs "gcl" GCL.genProg [20, 40, 60, 80]
-  genProgs "json" JSON.genProg [100, 150, 200, 250]
+  genProgs "gcl" GCL.genProg [40, 50, 60, 70]
+  genProgs "json" JSON.genProg [100, 200, 300, 400]

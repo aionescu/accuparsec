@@ -10,16 +10,17 @@ import Data.Text qualified as T
 import Data.Text.IO qualified as T
 import System.Random(randomRIO)
 
-import Data.Accuparsec.Text(ParseError(..))
+import Data.Accuparsec.Text(ParseError(..), ErrorList)
+import Data.SList(toList)
 import GCL.Parser.Accuparsec qualified as Accu
 import GCL.Parser.Attoparsec qualified as Atto
 
 randomInt :: Int -> IO Int
 randomInt n = randomRIO (0, n - 1)
 
-location :: Int -> [ParseError] -> [Int]
+location :: Int -> ErrorList -> [Int]
 location n =
-  take 5 . map (n-) . sort . nubOrd . fmap ((+ 1) . T.length . remainingInput)
+  take 5 . map (n-) . sort . nubOrd . fmap ((+ 1) . T.length . remainingInput) . toList
 
 closest :: Int -> [Int] -> Int
 closest n = minimum . fmap (\x -> abs (x - n))

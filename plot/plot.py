@@ -86,7 +86,7 @@ def unmarshal_speed(benchmarks):
 def plot(ax, x_label, y_label, benchmarks, x_label_usetex=False, xtick_usetex=False, rotation=None, legend=True):
     """
     plots data of the following shape.
-    
+
     {'1.30 MiB': {'accuparsec': 246.10533009999924,
                   'attoparsec': 260.39305789981876},
      '1.30 MiB (Err)': {'accuparsec': 252.52285329970618,
@@ -134,7 +134,7 @@ plot(
     },
     rotation=45,
 )
-fig.savefig("bench_speed_gcl_slow.png")
+fig.savefig("plot/bench-gcl.png")
 
 (fig, ax) = plt.subplots(layout="constrained", figsize=(6.4, 4.8), dpi=150)
 plot(
@@ -148,6 +148,6 @@ plot(
     },
     rotation=45,
 )
-fig.savefig("bench_speed_json_slow.png")
+fig.savefig("plot/bench-json.png")
 
 # plt.show()
