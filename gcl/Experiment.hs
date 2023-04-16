@@ -16,11 +16,10 @@ import GCL.Parser.Attoparsec qualified as GT
 import GCL.Parser.Accuparsec qualified as GC
 -- import GCL.Parser.Rednaz qualified as GR
 import Data.Accuparsec.Text qualified as LC
-import Data.Accuparsec.Text (ParseError (Error, Label, expected))
+import Data.Accuparsec.Text (ParseError (ParseError))
 import Data.Attoparsec.Text qualified as LT
 -- import Text.Parse.Char.AttoparsecInterface qualified as LR
 import Data.List qualified as L
-import Data.SList qualified
 import Data.List.NonEmpty (NonEmpty ((:|)), groupWith)
 import Data.Foldable (Foldable (toList))
 
@@ -44,12 +43,11 @@ data GroupedParseError =
     Text -- ^ expected
   deriving stock (Eq, Show)
 
-groupErrors :: LC.ErrorList -> [(Text, NonEmpty GroupedParseError)]
+groupErrors :: [ParseError] -> [(Text, NonEmpty GroupedParseError)]
 groupErrors =
   fmap (\es@(eHead :| _) -> (inputRestGet eHead, toGrouped <$> es)) .
   groupWith (fastLength . inputRestGet) .
-  L.sortOn (fastLength . inputRestGet) .
-  Data.SList.toList
+  L.sortOn (fastLength . inputRestGet)
 
 parseT :: LT.Parser a -> Text -> LT.Result a
 parseT =
@@ -90,11 +88,10 @@ errorBundlePretty =
     )
 
 inputRestGet :: ParseError -> Text
-inputRestGet = LC.remainingInput
+inputRestGet (ParseError {remainingInput}) = remainingInput
 
 toGrouped :: ParseError -> GroupedParseError
-toGrouped (Error {expected}) = GroupedParseError expected
-toGrouped (Label {label}) = GroupedFail label
+toGrouped (ParseError {expected}) = GroupedParseError expected
 {-# inline toGrouped #-}
 
 fastLength :: Text -> Int
