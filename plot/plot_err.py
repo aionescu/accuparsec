@@ -1,8 +1,42 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-accu = [1.18, 18.13, 79.62]
-atto = [95.1, 99, 114.54]
+# k = 5
+# Input length
+# 363
+# 1349
+# 90186
+# "progs/err-eval-medium.gcl"
+# Input length
+# 3658
+# 14262
+# 105772
+# "progs/err-eval-longest.gcl"
+# Input length
+# 17661
+# 90567
+# 151389
+# accu = [1.35, 14.26, 90.57] 
+# atto = [90.19, 105.77, 151.39]
+
+# k = 1
+# "progs/err-eval.gcl"
+# Input length
+# 363
+# 2184
+# 90186
+# "progs/err-eval-medium.gcl"
+# Input length
+# 3658
+# 15175
+# 105772
+# "progs/err-eval-longest.gcl"
+# Input length
+# 17661
+# 91678
+# 151389
+accu = [2.18, 15.18, 91.68]
+atto = [90.19, 105.77, 151.39]
 
 
 lengths = ["363", "3658", "17661"]
@@ -12,14 +46,14 @@ width = 1 / len(accu)
 
 indices = np.arange(len(lengths))
 
-ax.bar(indices - width/2, atto, width, label='Attoparsec')
-ax.bar(indices + width/2, accu, width, label='Accuparsec')
+ax.bar(indices - width/2, accu, width, label='accuparsec')
+ax.bar(indices + width/2, atto, width, label='attoparsec')
 
 ax.set_xticks(indices)
 ax.set_xticklabels(lengths)
 
 ax.set_ylabel("Average distance from error")
-ax.set_xlabel("Input size", usetex=False)
+ax.set_xlabel("Input size (characters)", usetex=False)
 
 fig.savefig("plot/err.png")
 # fig.show()

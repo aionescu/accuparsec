@@ -8,19 +8,22 @@ import Data.Containers.ListUtils(nubOrd)
 import Data.List(sort)
 import Data.Text qualified as T
 import Data.Text.IO qualified as T
-import System.Random(randomRIO)
+import System.Random(randomRIO, mkStdGen, setStdGen)
 
 import Data.Accuparsec.Text(ParseError(..), ErrorList)
 import Data.SList(toList)
 import GCL.Parser.Accuparsec qualified as Accu
 import GCL.Parser.Attoparsec qualified as Atto
 
+seed :: Num a => a
+seed = 872349072193213
+
 randomInt :: Int -> IO Int
-randomInt n = randomRIO (0, n - 1)
+randomInt n = randomRIO (0, n - 1) 
 
 location :: Int -> ErrorList -> [Int]
 location n =
-  take 5 . map (n-) . sort . nubOrd . fmap ((+ 1) . T.length . remainingInput) . toList
+  take 1 . map (n-) . sort . nubOrd . fmap (T.length . remainingInput) . Data.SList.toList
 
 closest :: Int -> [Int] -> Int
 closest n = minimum . fmap (\x -> abs (x - n))
@@ -76,13 +79,14 @@ errBench name = do
   case Accu.parse file of
     Left _ -> putStrLn "incorrect input"
     Right _ -> return ()
-  s <- tryAccu name 10000
+  s <- tryAccu name 1000
   print s
-  s <- tryAttoParsec name 10000
+  s <- tryAttoParsec name 1000
   print s
 
 main :: IO ()
 main = do
+  setStdGen $ mkStdGen seed
   mapM_ errBench [
     "progs/err-eval.gcl",
     "progs/err-eval-medium.gcl",
