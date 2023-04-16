@@ -138,9 +138,23 @@ program =
 
 parseWithRemainingInput :: Text -> Maybe Int
 parseWithRemainingInput input =
-  case A.parse (ws *> program <* endOfInput) input of
+  case parseOnly' (ws *> program <* endOfInput) input of
     A.Fail rest _ _ -> Just $ T.length rest
     _ -> Nothing
 
 parse :: Text -> Either String Program
 parse = parseOnly $ ws *> program <* endOfInput
+
+parseOnly' :: Parser a -> Text -> A.Result a
+parseOnly' =
+  (\case
+    r@(A.Fail {}) -> r
+    r@(A.Done {}) -> r
+    A.Partial f -> f ""
+  )
+  .:
+  A.parse
+
+infixr 9 .:
+(.:) :: (c -> d) -> (a -> b -> c) -> a -> b -> d
+(.:) = (.) . (.)
