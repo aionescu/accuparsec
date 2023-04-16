@@ -46,7 +46,7 @@ def parse_bench_name(name):
             "accuparsec" if reMatch[2] == "accu" else
             "attoparsec" if reMatch[2] == "atto" else
             error("unknown library"),
-        "input": int(reMatch[4]),
+        "size": int(reMatch[4]),
         "errors": reMatch[3] is not None,
         "grammar": reMatch[1]
     }
@@ -55,16 +55,31 @@ def unmarshal_speed(benchmarks):
     """
     unmarshals to the following shape.
 
-    to do
+    ({'errors': False,
+      'grammar': 'gcl',
+      'size': 106833,
+      'value': {'accuparsec': 0.01937118285489776,
+                'attoparsec': 0.021256582474023906}},
+     {'errors': True,
+      'grammar': 'gcl',
+      'size': 106833,
+      'value': {'accuparsec': 0.019384692577976273,
+                'attoparsec': 0.021690398030040147}},
+     {'errors': False,
+      'grammar': 'gcl',
+      'size': 494793,
+      'value': {'accuparsec': 0.09231922349987742,
+                'attoparsec': 0.10275646000000042}},
+     ...)
     """
     return (
-        {"input": i, "errors": e, "grammar": g, "value": {data1["library"]: data1["value"] for data1 in data0}}
-        for ((g, i, e), data0) in group_sorted(
+        {"size": s, "errors": e, "grammar": g, "value": {data1["library"]: data1["value"] for data1 in data0}}
+        for ((g, s, e), data0) in group_sorted(
             (
-                {**parse_bench_name(c["reportName"]), "value": c["reportAnalysis"]["anRegress"][0]["regCoeffs"]["iters"]["estPoint"] * 10**3}
+                {**parse_bench_name(c["reportName"]), "value": c["reportAnalysis"]["anRegress"][0]["regCoeffs"]["iters"]["estPoint"]}
                 for c in benchmarks
             ),
-            key=itemgetter("grammar", "input", "errors")
+            key=itemgetter("grammar", "size", "errors")
         )
     )
 
@@ -72,10 +87,12 @@ def plot(ax, x_label, y_label, benchmarks, x_label_usetex=False, xtick_usetex=Fa
     """
     plots data of the following shape.
     
-    {10: {'accuparsec': 0.7020476904880393,
-          'attoparsec': 0.9104941414657346},
-     30: {'accuparsec': 20.405967427274373,
-          'attoparsec': 21.091928654553964},
+    {'1.30 MiB': {'accuparsec': 246.10533009999924,
+                  'attoparsec': 260.39305789981876},
+     '1.30 MiB (Err)': {'accuparsec': 252.52285329970618,
+                        'attoparsec': 263.5828087997652},
+     '104.33 KiB': {'accuparsec': 19.37118285489776,
+                    'attoparsec': 21.256582474023908},
      ...}
     """
     tick_labels = benchmarks.keys()
@@ -91,13 +108,16 @@ def plot(ax, x_label, y_label, benchmarks, x_label_usetex=False, xtick_usetex=Fa
     if legend:
         ax.legend(loc="upper left", ncol=library_count)
 
-def format_bytes(byte_count):
+def make_x_label(size, errors):
     (divisor, unit) = (
-        (1, "B") if byte_count < 1024 else
-        (1024, "KiB") if byte_count < 1024 * 1024 else
+        (1, "B") if size < 1024 else
+        (1024, "KiB") if size < 1024 * 1024 else
         (1024 * 1024, "MiB")
     )
-    return f"{byte_count/divisor:.2f} {unit}"
+    return f"{size/divisor:.2f} {unit}" + (" (Err)" if errors else "")
+
+def to_milliseconds(value):
+    return {k: v * 10**3 for (k, v) in value.items()}
 
 with open(sys.argv[1]) as f:
     speed = tuple(unmarshal_speed(j.load(f)[2]))
@@ -108,7 +128,7 @@ plot(
     "input size",
     "time (ms)",
     {
-        format_bytes(case["input"]) + (" (Err)" if case["errors"] else ""): case["value"]
+        make_x_label(case["size"], case["errors"]): to_milliseconds(case["value"])
         for case in speed
         if case["grammar"] == "gcl"
     },
@@ -122,7 +142,7 @@ plot(
     "input size",
     "time (ms)",
     {
-        format_bytes(case["input"]) + (" (Err)" if case["errors"] else ""): case["value"]
+        make_x_label(case["size"], case["errors"]): to_milliseconds(case["value"])
         for case in speed
         if case["grammar"] == "json"
     },

@@ -1,22 +1,24 @@
 module GCL.Parser.Accuparsec where
 
 import Control.Applicative((<**>), (<|>), many, optional)
-import Control.Applicative.Combinators(between, skipMany, choice, sepBy, option, skipManyTill)
+import Control.Applicative.Combinators(between, skipMany, choice, sepBy, option)
 import Control.Monad.Combinators.Expr(Operator(..), makeExprParser)
-import Data.Accuparsec.Text(Parser, ErrorList, (<?>), endOfInput, decimal, digit, letter, signed, skipSpace, anyChar, char, endOfLine, runParser, string)
+import Data.Accuparsec.Text(Parser, ParseError, (<?>), endOfInput, takeWhile, decimal, signed, skipSpace, endOfLine, runParser, string, satisfy)
+import Data.Char(isDigit, isLetter)
 import Data.Function(on)
 import Data.Functor(($>))
 import Data.List(groupBy, sortOn)
 import Data.Ord(Down(..))
 import Data.Text(Text)
 import Data.Text qualified as T
+import Prelude hiding (takeWhile)
 
 import GCL.Syntax
 
 ws :: Parser ()
-ws = skipSpace *> skipMany (comment *> skipSpace)
+ws = skipSpace *> skipMany (comment *> skipSpace) <?> "whitespace or comment"
   where
-    comment = string "--" *> skipManyTill anyChar endOfLine
+    comment = string "--" *> takeWhile (\c -> c /= '\r' && c /= '\n') *> endOfLine
 
 lexeme :: Parser a -> Parser a
 lexeme p = p <* ws
@@ -39,11 +41,10 @@ reserved =
 
 ident :: Parser Text
 ident =
-  notReserved . T.pack =<< lexeme ((:) <$> fstChar <*> many sndChar) <?> "Identifier"
+  notReserved =<< lexeme (T.cons <$> fstChar <*> sndChar) <?> "Identifier"
   where
-    fstChar = letter <|> char '_'
-    sndChar = fstChar <|> digit <|> char '\''
-
+    fstChar = satisfy \c -> isLetter c || c == '_'
+    sndChar = takeWhile \c -> isLetter c || isDigit c || c == '_' || c == '\''
     notReserved i
       | i `elem` reserved = fail $ "Reserved identifier " <> show i
       | otherwise = pure i
@@ -134,5 +135,5 @@ program =
   <*> (symbol "->" *> decl)
   <*> block
 
-parse :: Text -> Either ErrorList Program
+parse :: Text -> Either [ParseError] Program
 parse = runParser $ ws *> program <* endOfInput

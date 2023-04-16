@@ -2,7 +2,7 @@ module Data.SList where
 
 data SList a
   = Nil
-  | SList a :! a
+  | SList a :! !a
   deriving stock Show
 
 infixl 5 :!

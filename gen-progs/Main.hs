@@ -4,7 +4,7 @@ import Data.Foldable(for_)
 import Data.Text(Text)
 import Data.Text qualified as T
 import Data.Text.IO qualified as T
-import System.Directory(createDirectoryIfMissing)
+import System.Directory(createDirectoryIfMissing, removeDirectoryRecursive)
 
 import GCL qualified
 import JSON qualified
@@ -12,24 +12,23 @@ import JSON qualified
 mkErr :: Text -> Text
 mkErr = T.dropEnd 2
 
-main :: IO ()
-main = do
-  for_ ["progs/gcl", "progs/json"] $ createDirectoryIfMissing True
+genProgs :: String -> (Int -> Text) -> [Int] -> IO ()
+genProgs lang gen ns = do
+  removeDirectoryRecursive $ "progs/" <> lang
+  createDirectoryIfMissing True $ "progs/" <> lang
 
-  for_ [30, 50, 70, 90] \n -> do
+  for_ ns \n -> do
     let
       n' = show n
 
-      gclProg = GCL.genProg n
-      gclProgErr = mkErr gclProg
-      gclSize = show $ T.length gclProg
+      prog = gen n
+      progErr = mkErr prog
+      size = show $ T.length prog
 
-      jsonProg = JSON.genProg n
-      jsonProgErr = mkErr jsonProg
-      jsonSize = show $ T.length jsonProg
+    T.writeFile ("progs/" <> lang <> "/" <> n' <> "-" <> size <>  "." <> lang) prog
+    T.writeFile ("progs/" <> lang <> "/" <> n' <> "-err-" <> size <>  "." <> lang) progErr
 
-    T.writeFile ("progs/gcl/" <> n' <> "-" <> gclSize <>  ".gcl") gclProg
-    T.writeFile ("progs/gcl/" <> n' <> "-err-" <> gclSize <>  ".gcl") gclProgErr
-
-    T.writeFile ("progs/json/" <> n' <> "-" <> jsonSize <>  ".json") jsonProg
-    T.writeFile ("progs/json/" <> n' <> "-err-" <> jsonSize <>  ".json") jsonProgErr
+main :: IO ()
+main = do
+  genProgs "gcl" GCL.genProg [20, 40, 60, 80]
+  genProgs "json" JSON.genProg [100, 150, 200, 250]
