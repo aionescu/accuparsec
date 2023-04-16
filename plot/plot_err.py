@@ -16,8 +16,8 @@ import numpy as np
 # 17661
 # 90567
 # 151389
-# accu = [1.35, 14.26, 90.57] 
-# atto = [90.19, 105.77, 151.39]
+accu = [1.35, 14.26, 90.57] 
+atto = [90.19, 105.77, 151.39]
 
 # k = 1
 # "progs/err-eval.gcl"
@@ -35,8 +35,8 @@ import numpy as np
 # 17661
 # 91678
 # 151389
-accu = [2.18, 15.18, 91.68]
-atto = [90.19, 105.77, 151.39]
+# accu = [2.18, 15.18, 91.68]
+# atto = [90.19, 105.77, 151.39]
 
 
 lengths = ["363", "3658", "17661"]
@@ -52,8 +52,12 @@ ax.bar(indices + width/2, atto, width, label='attoparsec')
 ax.set_xticks(indices)
 ax.set_xticklabels(lengths)
 
+for i in range(len(accu)):
+    plt.text(i - width/2, accu[i]+1, accu[i], ha='center')
+    plt.text(i + width/2, atto[i]+1, atto[i], ha='center')
+
 ax.set_ylabel("Average distance from error")
 ax.set_xlabel("Input size (characters)", usetex=False)
-
+ax.legend()
 fig.savefig("plot/err.png")
 # fig.show()
