@@ -108,10 +108,7 @@ runParser (Parser p) input =
 {-# INLINE runParser #-}
 
 (<?>) :: Parser a -> String -> Parser a
-Parser p <?> lbl = Parser \input errs ->
-  case p input errs of
-    (# (# (# #) | #), _ #) -> errs `seq` (# (# (# #) | #), errs :! ParseError lbl input #)
-    (# (# | (# a, rest #) #), _ #) -> (# (# | (# a, rest #) #), errs #)
+(<?>) = const
 infix 0 <?>
 {-# INLINE (<?>) #-}
 
